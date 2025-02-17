@@ -4,44 +4,19 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="7f7f2bd3-e214-4e30-bd7d-17dcd9bc915f" name="Changes" comment="fixed issues">
-      <change beforePath="$PROJECT_DIR$/Archive.zip" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/index.html" afterDir="false" />
-    </list>
+    <list default="true" id="b592705e-b8f8-448c-8189-56cfcee4d2b7" name="Changes" comment="fixed issues" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
-  <component name="ClangdSettings">
-    <option name="formatViaClangd" value="false" />
-  </component>
-  <component name="Git.Settings">
-    <option name="RECENT_BRANCH_BY_REPOSITORY">
-      <map>
-        <entry key="$PROJECT_DIR$" value="gh-pages" />
-      </map>
-    </option>
-    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
-  </component>
   <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
-    "dart.analysis.tool.window.visible": "false",
-    "git-widget-placeholder": "gh-pages"
+    "dart.analysis.tool.window.visible": "false"
   }
 }]]></component>
-  <component name="RunManager">
-    <configuration name="main.dart" type="FlutterRunConfigurationType" factoryName="Flutter">
-      <option name="filePath" value="$PROJECT_DIR$/lib/main.dart" />
-      <method v="2" />
-    </configuration>
-  </component>
   <component name="TaskManager">
     <servers />
-  </component>
-  <component name="VcsManagerConfiguration">
-    <MESSAGE value="added doctor summary" />
-    <option name="LAST_COMMIT_MESSAGE" value="added doctor summary" />
   </component>
 </project>

@@ -126,8 +126,8 @@ Future<List<DoctorData>> parseExcelFile(Uint8List fileBytes) async {
 
 /// Builds the PDF content for a single doctor, half-page style.
 /// If <=9 patients => full table, else summary.
-pw.Widget buildDoctorPdfBlock(DoctorData doctor) {
-  final patients = doctor.patients;
+pw.Widget buildDoctorPdfBlock(List<DoctorData> doctor, int index) {
+  final patients = doctor[index].patients;
   final totalIC = patients.fold<double>(0.0, (sum, p) => sum + p.ic);
   final mriCount = patients.where((p) => p.department == "MRI").length;
   final ctCount = patients.where((p) => p.department == "CT").length;
@@ -139,11 +139,11 @@ pw.Widget buildDoctorPdfBlock(DoctorData doctor) {
       pw.Row(
         children: [
           pw.Text("Doctor: ", style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
-          pw.Text(doctor.doctorName),
+          pw.Text(doctor[index].doctorName),
         ],
       ),
       pw.SizedBox(height: 8),
-      if (patients.length <= 9)
+      if (doctor.length == 1 || patients.length <= 9)
         _buildPdfPatientTable(patients)
       else
         _buildPdfSummaryBlock(
@@ -158,12 +158,12 @@ pw.Widget buildDoctorPdfBlock(DoctorData doctor) {
         mainAxisAlignment: pw.MainAxisAlignment.end,
         children: [
           pw.Text(
-            "TOTAL (INR) ${totalIC.toStringAsFixed(2)}",
+            "TOTAL ${totalIC.toStringAsFixed(2)}",
             style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
           ),
         ],
       ),
-      pw.SizedBox(height: 16),
+      pw.SizedBox(height: 20),
       // Signatures
       pw.Row(
         mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
@@ -172,6 +172,7 @@ pw.Widget buildDoctorPdfBlock(DoctorData doctor) {
           pw.Text("Receiver's Sign"),
         ],
       ),
+      pw.SizedBox(height: 10),
     ],
   );
 }
@@ -182,8 +183,8 @@ pw.Widget _buildPdfPatientTable(List<PatientData> patients) {
     border: pw.TableBorder.all(),
     columnWidths: {
       0: const pw.FlexColumnWidth(2), // Patient Name
-      1: const pw.FlexColumnWidth(2), // Department
-      2: const pw.FlexColumnWidth(2), // Bill Date
+      1: const pw.FlexColumnWidth(1), // Department
+      2: const pw.FlexColumnWidth(1), // Bill Date
       3: const pw.FlexColumnWidth(1), // IC
     },
     children: [
@@ -194,22 +195,22 @@ pw.Widget _buildPdfPatientTable(List<PatientData> patients) {
           pw.Padding(
             padding: const pw.EdgeInsets.all(4),
             child: pw.Text("Patient Name",
-                style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+                style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 8)),
           ),
           pw.Padding(
             padding: const pw.EdgeInsets.all(4),
-            child: pw.Text("Department",
-                style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+            child: pw.Text("Dept",
+                style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 8)),
           ),
           pw.Padding(
             padding: const pw.EdgeInsets.all(4),
             child: pw.Text("Bill Date",
-                style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+                style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 8)),
           ),
           pw.Padding(
             padding: const pw.EdgeInsets.all(4),
-            child: pw.Text("IC",
-                style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
+            child: pw.Text("",
+                style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 8),
                 textAlign: pw.TextAlign.right),
           ),
         ],
@@ -220,21 +221,26 @@ pw.Widget _buildPdfPatientTable(List<PatientData> patients) {
           children: [
             pw.Padding(
               padding: const pw.EdgeInsets.all(4),
-              child: pw.Text(p.patientName),
+              child: pw.Text(
+                p.patientName.length > 14 ? '${p.patientName.substring(0, 11)}...' : p.patientName,
+                style: const pw.TextStyle(fontSize: 8),
+              ),
             ),
             pw.Padding(
               padding: const pw.EdgeInsets.all(4),
-              child: pw.Text(p.department),
+              child: pw.Text(p.department, style: const pw.TextStyle(fontSize: 8)),
             ),
             pw.Padding(
               padding: const pw.EdgeInsets.all(4),
-              child: pw.Text(DateFormat('dd/MM/yy').format(p.billDate)),
+              child: pw.Text(DateFormat('dd/MM/yy').format(p.billDate),
+                  style: const pw.TextStyle(fontSize: 8)),
             ),
             pw.Padding(
               padding: const pw.EdgeInsets.all(4),
               child: pw.Text(
                 p.ic.toStringAsFixed(2),
                 textAlign: pw.TextAlign.right,
+                style: const pw.TextStyle(fontSize: 8),
               ),
             ),
           ],
@@ -261,7 +267,7 @@ pw.Widget _buildPdfSummaryBlock({
       pw.Text("Total Patients: $patientCount"),
       pw.Text("MRI Count: $mriCount"),
       pw.Text("CT Count: $ctCount"),
-      pw.Text("Total IC: ${totalIC.toStringAsFixed(2)}"),
+      pw.Text("Total : ${totalIC.toStringAsFixed(2)}"),
     ],
   );
 }
@@ -305,7 +311,7 @@ Widget buildDoctorPreviewUI(DoctorData doctor) {
           Align(
             alignment: Alignment.centerRight,
             child: Text(
-              "TOTAL (INR) ${totalIC.toStringAsFixed(2)}",
+              "TOTAL ${totalIC.toStringAsFixed(2)}",
               style: const TextStyle(fontWeight: FontWeight.bold),
             ),
           ),
@@ -353,7 +359,7 @@ Widget _buildPreviewPatientTable(List<PatientData> patients) {
           ),
           Padding(
             padding: EdgeInsets.all(4),
-            child: Text("IC", style: TextStyle(fontWeight: FontWeight.bold)),
+            child: Text("", style: TextStyle(fontWeight: FontWeight.bold)),
           ),
         ],
       ),
@@ -401,13 +407,13 @@ Widget _buildPreviewSummaryBlock({
       Text("Total Patients: $patientCount"),
       Text("MRI Count: $mriCount"),
       Text("CT Count: $ctCount"),
-      Text("Total IC: ${totalIC.toStringAsFixed(2)}"),
+      Text("Total : ${totalIC.toStringAsFixed(2)}"),
     ],
   );
 }
 
-/// Generates a single PDF page with two half-page blocks side by side
-/// if both doctors are selected. If only one is selected, it takes the full page.
+/// Generates a single PDF page with two half-page blocks if both doctors are selected.
+/// If only one is selected, it takes the full page.
 Future<void> generatePdfForTwoDoctors(
     DoctorData? doctorA,
     DoctorData? doctorB,
@@ -417,7 +423,7 @@ Future<void> generatePdfForTwoDoctors(
   final pdf = pw.Document();
   pdf.addPage(
     pw.Page(
-      pageFormat: PdfPageFormat.a4,
+      pageFormat: PdfPageFormat.a5,
       margin: const pw.EdgeInsets.all(24),
       build: (context) {
         final selected = <DoctorData>[];
@@ -429,14 +435,14 @@ Future<void> generatePdfForTwoDoctors(
           return pw.Center(child: pw.Text("No doctors selected."));
         } else if (selected.length == 1) {
           // Only one doctor => take the full page
-          return buildDoctorPdfBlock(selected[0]);
+          return buildDoctorPdfBlock(selected, 0);
         } else {
-          // Two doctors => side by side, each half page
+          // Two doctors => split into two half-page blocks (top and bottom)
           return pw.Column(
             children: [
-              pw.Expanded(child: buildDoctorPdfBlock(selected[0])),
+              pw.Expanded(child: buildDoctorPdfBlock(selected, 0)),
               pw.SizedBox(height: 10),
-              pw.Expanded(child: buildDoctorPdfBlock(selected[1])),
+              pw.Expanded(child: buildDoctorPdfBlock(selected, 1)),
             ],
           );
         }
@@ -445,6 +451,96 @@ Future<void> generatePdfForTwoDoctors(
   );
 
   // Show the print/save dialog
+  await Printing.layoutPdf(
+    onLayout: (PdfPageFormat format) async => pdf.save(),
+  );
+}
+
+/// NEW FUNCTIONALITY:
+/// Generates a PDF summary for ALL doctors irrespective of the selection.
+/// The summary table includes:
+/// - Doctor Name
+/// - Total IC Amount
+/// - Two empty columns for manual input.
+Future<void> generateDoctorSummaryPdfForAll(List<DoctorData> doctors) async {
+  final pdf = pw.Document();
+
+  pdf.addPage(
+    pw.MultiPage(
+      pageFormat: PdfPageFormat.a4, // Use A4 sheet for print
+      margin: const pw.EdgeInsets.all(24),
+      build: (pw.Context context) {
+        return  <pw.Widget>[
+          pw.Text(
+            "Doctor Summary",
+            style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold),
+          ),
+          pw.SizedBox(height: 16),
+          pw.Table(
+            border: pw.TableBorder.all(),
+            columnWidths: {
+              0: pw.FlexColumnWidth(2), // Doctor Name
+              1: pw.FlexColumnWidth(1), // Total IC
+              2: pw.FlexColumnWidth(1), // Manual Column 1
+              3: pw.FlexColumnWidth(1), // Manual Column 2
+            },
+            children: [
+              // Header Row
+              pw.TableRow(
+                decoration: pw.BoxDecoration(color: PdfColors.grey300),
+                children: [
+                  pw.Padding(
+                    padding: const pw.EdgeInsets.all(4),
+                    child: pw.Text("Doctor Name", style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+                  ),
+                  pw.Padding(
+                    padding: const pw.EdgeInsets.all(4),
+                    child: pw.Text("Total IC", style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+                  ),
+                  pw.Padding(
+                    padding: const pw.EdgeInsets.all(4),
+                    child: pw.Text("Manual Col 1", style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+                  ),
+                  pw.Padding(
+                    padding: const pw.EdgeInsets.all(4),
+                    child: pw.Text("Manual Col 2", style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+                  ),
+                ],
+              ),
+              // Data Rows for each doctor
+              ...doctors.map((doc) {
+                final totalIc = doc.patients.fold<double>(0.0, (sum, p) => sum + p.ic);
+                return pw.TableRow(
+                  children: [
+                    pw.Padding(
+                      padding: const pw.EdgeInsets.all(4),
+                      child: pw.Text(doc.doctorName),
+                    ),
+                    pw.Padding(
+                      padding: const pw.EdgeInsets.all(4),
+                      child: pw.Text(
+                        totalIc.toStringAsFixed(2),
+                        textAlign: pw.TextAlign.right,
+                      ),
+                    ),
+                    pw.Padding(
+                      padding: const pw.EdgeInsets.all(4),
+                      child: pw.Text(""), // empty cell for manual input
+                    ),
+                    pw.Padding(
+                      padding: const pw.EdgeInsets.all(4),
+                      child: pw.Text(""), // empty cell for manual input
+                    ),
+                  ],
+                );
+              }).toList(),
+            ],
+          ),
+        ];
+      },
+    ),
+  );
+
   await Printing.layoutPdf(
     onLayout: (PdfPageFormat format) async => pdf.save(),
   );
@@ -488,6 +584,13 @@ class _TwoDoctorExcelDemoState extends State<TwoDoctorExcelDemo> {
     await generatePdfForTwoDoctors(selectedDoctorA, selectedDoctorB);
   }
 
+  /// NEW: Print Summary PDF for ALL doctors (ignoring selection)
+  Future<void> onPrintSummaryPdf() async {
+    if (allDoctors.isNotEmpty) {
+      await generateDoctorSummaryPdfForAll(allDoctors);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     // Sort for nicer dropdown listing
@@ -508,7 +611,7 @@ class _TwoDoctorExcelDemoState extends State<TwoDoctorExcelDemo> {
         )
             : Column(
           children: [
-            // Upload new Excel
+            // Buttons: Upload New Excel, Print/Save PDF, and Print Summary
             Row(
               children: [
                 ElevatedButton(
@@ -521,6 +624,11 @@ class _TwoDoctorExcelDemoState extends State<TwoDoctorExcelDemo> {
                       ? onPrintPdf
                       : null,
                   child: const Text("Print/Save PDF"),
+                ),
+                const SizedBox(width: 16),
+                ElevatedButton(
+                  onPressed: allDoctors.isNotEmpty ? onPrintSummaryPdf : null,
+                  child: const Text("Print Summary"),
                 ),
               ],
             ),
@@ -543,7 +651,7 @@ class _TwoDoctorExcelDemoState extends State<TwoDoctorExcelDemo> {
               onChanged: (value) {
                 setState(() {
                   selectedDoctorA = value;
-                  // If B is the same as A, reset B
+                  // If Doctor B is the same as A, reset B
                   if (selectedDoctorB == value) {
                     selectedDoctorB = null;
                   }

@@ -163,7 +163,8 @@ pw.Widget buildDoctorPdfBlock(List<DoctorData> doctor, int index) {
           ),
         ],
       ),
-      pw.SizedBox(height: 20),
+      // pw.SizedBox(height: 20),
+      pw.Expanded(child:pw.SizedBox(height: 0)),
       // Signatures
       pw.Row(
         mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
@@ -499,11 +500,11 @@ Future<void> generateDoctorSummaryPdfForAll(List<DoctorData> doctors) async {
                   ),
                   pw.Padding(
                     padding: const pw.EdgeInsets.all(4),
-                    child: pw.Text("Manual Col 1", style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+                    child: pw.Text("", style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
                   ),
                   pw.Padding(
                     padding: const pw.EdgeInsets.all(4),
-                    child: pw.Text("Manual Col 2", style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+                    child: pw.Text("", style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
                   ),
                 ],
               ),

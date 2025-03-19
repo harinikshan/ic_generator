@@ -92,7 +92,7 @@ Future<List<DoctorData>> parseExcelFile(Uint8List fileBytes) async {
     } else {
       String rawDate = billDateCell.value.toString().trim();
       try {
-        billDate = DateFormat('dd/MM/yy').parse(rawDate);
+        billDate = DateFormat('yyyy-MM-ddTHH:mm:ss.SSS').parse(rawDate);
       } catch (_) {
         try {
           billDate = DateFormat('dd/MM/yyyy').parse(rawDate);
@@ -127,7 +127,10 @@ Future<List<DoctorData>> parseExcelFile(Uint8List fileBytes) async {
 /// Builds the PDF content for a single doctor, half-page style.
 /// If <=9 patients => full table, else summary.
 pw.Widget buildDoctorPdfBlock(List<DoctorData> doctor, int index) {
-  final patients = doctor[index].patients;
+  // <-- Change 1: Filter out patients with 0.00 IC
+  final allPatients = doctor[index].patients;
+  final patients = allPatients.where((p) => p.ic > 0.0).toList();
+
   final totalIC = patients.fold<double>(0.0, (sum, p) => sum + p.ic);
   final mriCount = patients.where((p) => p.department == "MRI").length;
   final ctCount = patients.where((p) => p.department == "CT").length;
@@ -135,11 +138,20 @@ pw.Widget buildDoctorPdfBlock(List<DoctorData> doctor, int index) {
   return pw.Column(
     crossAxisAlignment: pw.CrossAxisAlignment.start,
     children: [
-      // Doctor label
+      // <-- Change 2: Doctor header with today's time at top right
       pw.Row(
+        mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
         children: [
-          pw.Text("Doctor: ", style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
-          pw.Text(doctor[index].doctorName),
+          pw.Row(
+            children: [
+              pw.Text("Doctor: ", style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+              pw.Text(doctor[index].doctorName),
+            ],
+          ),
+          pw.Text(
+            DateFormat('dd/MM/yy').format(DateTime.now()),
+            style: pw.TextStyle(fontSize: 10),
+          ),
         ],
       ),
       pw.SizedBox(height: 8),
@@ -163,8 +175,7 @@ pw.Widget buildDoctorPdfBlock(List<DoctorData> doctor, int index) {
           ),
         ],
       ),
-      // pw.SizedBox(height: 20),
-      pw.Expanded(child:pw.SizedBox(height: 0)),
+      pw.Expanded(child: pw.SizedBox(height: 0)),
       // Signatures
       pw.Row(
         mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
@@ -276,7 +287,8 @@ pw.Widget _buildPdfSummaryBlock({
 /// Builds a Flutter UI preview block for a single doctor,
 /// side by side in the main screen. Same logic: if <=9 patients => table, else summary.
 Widget buildDoctorPreviewUI(DoctorData doctor) {
-  final patients = doctor.patients;
+  // <-- Change 1: Filter out patients with 0.00 IC for UI preview
+  final patients = doctor.patients.where((p) => p.ic > 0.0).toList();
   final totalIC = patients.fold<double>(0.0, (sum, p) => sum + p.ic);
   final mriCount = patients.where((p) => p.department == "MRI").length;
   final ctCount = patients.where((p) => p.department == "CT").length;
@@ -299,7 +311,7 @@ Widget buildDoctorPreviewUI(DoctorData doctor) {
           ),
           const SizedBox(height: 8),
           if (patients.length <= 9)
-            _buildPreviewPatientTable(doctor.patients)
+            _buildPreviewPatientTable(patients)
           else
             _buildPreviewSummaryBlock(
               patientCount: patients.length,
@@ -471,7 +483,7 @@ Future<void> generateDoctorSummaryPdfForAll(List<DoctorData> doctors) async {
       pageFormat: PdfPageFormat.a4, // Use A4 sheet for print
       margin: const pw.EdgeInsets.all(24),
       build: (pw.Context context) {
-        return  <pw.Widget>[
+        return <pw.Widget>[
           pw.Text(
             "Doctor Summary",
             style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold),
@@ -510,7 +522,10 @@ Future<void> generateDoctorSummaryPdfForAll(List<DoctorData> doctors) async {
               ),
               // Data Rows for each doctor
               ...doctors.map((doc) {
-                final totalIc = doc.patients.fold<double>(0.0, (sum, p) => sum + p.ic);
+                // <-- Change 1: Filter patients when calculating totalIC
+                final totalIc = doc.patients
+                    .where((p) => p.ic > 0.0)
+                    .fold<double>(0.0, (sum, p) => sum + p.ic);
                 return pw.TableRow(
                   children: [
                     pw.Padding(
